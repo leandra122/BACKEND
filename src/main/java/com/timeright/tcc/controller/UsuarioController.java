@@ -1,5 +1,6 @@
 package com.timeright.tcc.controller;
 
+import com.timeright.tcc.model.dto.LoginRequest;
 import com.timeright.tcc.model.entity.Usuario;
 import com.timeright.tcc.services.UsuarioService;
 import org.springframework.http.HttpStatus;
@@ -120,7 +121,19 @@ import java.util.Map;
                         )
                 );
             }
-        }}
+        }
+
+    @PostMapping("/login")
+    public ResponseEntity<Object> login(@RequestBody LoginRequest loginRequest) {
+        Usuario usuario = usuarioService.validarLogin(loginRequest.getEmail(), loginRequest.getSenha());
+        if (usuario != null) {
+            return ResponseEntity.ok(usuario);
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                Map.of("status", 401, "error", "Unauthorized", "message", "Email ou senha inválidos")
+        );
+    }
+}
 
 
 

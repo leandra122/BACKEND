@@ -56,6 +56,14 @@ import java.util.List;
                 Usuario usuarioExistente = findById(id);
                 usuarioRepository.delete(usuarioExistente);
             }
+
+            public Usuario validarLogin(String email, String senha) {
+                Usuario usuario = usuarioRepository.findByEmail(email);
+                if (usuario != null && usuario.getSenha().equals(senha) && usuario.getCodStatus()) {
+                    return usuario;
+                }
+                return null;
+            }
         }
 
 
