@@ -2,71 +2,69 @@ package com.timeright.tcc.services;
 
 import com.timeright.tcc.model.entity.Usuario;
 import com.timeright.tcc.model.repository.UsuarioRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-    @Service
-    public class UsuarioService {
+@Service
+public class UsuarioService {
 
-        @Autowired  // Injeção de dependência automática
-        private UsuarioRepository usuarioRepository;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
-        // listar usuarios cadastrados
+    // 🔹 LISTAR TODOS
+    public List<Usuario> listarTodos() {
+        return usuarioRepository.findAll();
+    }
 
-        public List<Usuario> listarTodos() {
-            return usuarioRepository.findAll();
+    // 🔹 BUSCAR POR ID
+    public Usuario findById(Long id) {
+        return usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com id " + id));
+    }
+
+    // 🔹 SALVAR
+    @Transactional
+    public Usuario salvar(Usuario usuario) {
+        usuario.setStatusUsuario("ATIVO");
+        return usuarioRepository.save(usuario);
+    }
+
+    // 🔹 ATUALIZAR
+    @Transactional
+    public Usuario atualizar(Long id, Usuario usuario) {
+        Usuario existente = findById(id);
+
+        existente.setNome(usuario.getNome());
+        existente.setUsername(usuario.getUsername());
+        existente.setPassword(usuario.getPassword());
+        existente.setStatusUsuario(usuario.getStatusUsuario());
+        existente.setNivelAcesso(usuario.getNivelAcesso());
+
+        return usuarioRepository.save(existente);
+    }
+
+    // 🔹 DELETAR
+    @Transactional
+    public void deletar(Long id) {
+        Usuario usuario = findById(id);
+        usuarioRepository.delete(usuario);
+    }
+
+    // 🔹 LOGIN (AGORA CORRETO)
+    public Usuario validarLogin(String username, String password) {
+        Usuario usuario = usuarioRepository.findByUsername(username);
+
+        if (usuario != null &&
+            usuario.getPassword().equals(password) &&
+            "ATIVO".equals(usuario.getStatusUsuario())) {
+
+            return usuario;
         }
 
-        // Método responsável em CRIAR o SERVIÇO no banco de dados
-
-            public Usuario save(Usuario usuario) {
-                usuario.setCodStatus(true);
-                return usuarioRepository.save(usuario);
-            }
-
-            // listar por id
-
-            public Usuario findById(Long id) {
-                return usuarioRepository.findById(id)
-                        .orElseThrow(() -> new RuntimeException("Usuário não encontrado com id " + id));
-            }
-
-            @Transactional
-            public Usuario salvarUsuario(Usuario usuario) {
-                return usuarioRepository.save(usuario);
-            }
-
-            // atualizar usuario
-            @Transactional
-            public Usuario update(Long id, Usuario usuario) {
-               Usuario usuarioExistente = findById(id);
-                usuarioExistente.setNome(usuario.getNome());
-                usuarioExistente.setEmail(usuario.getEmail());
-                usuarioExistente.setSenha(usuario.getSenha());
-                usuarioExistente.setCodStatus(usuario.getCodStatus());
-
-                return usuarioRepository.save(usuarioExistente);
-            }
-
-            @Transactional
-            public void deletar(Long id) {
-                Usuario usuarioExistente = findById(id);
-                usuarioRepository.delete(usuarioExistente);
-            }
-
-            public Usuario validarLogin(String email, String senha) {
-                Usuario usuario = usuarioRepository.findByEmail(email);
-                if (usuario != null && usuario.getSenha().equals(senha) && usuario.getCodStatus()) {
-                    return usuario;
-                }
-                return null;
-            }
-        }
-
-
-
-
-
+        return null;
+    }
+}

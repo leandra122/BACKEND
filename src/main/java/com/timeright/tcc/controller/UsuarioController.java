@@ -12,7 +12,7 @@ import java.util.Map;
 
 @RestController
         @RequestMapping("/api/usuario")
-        @CrossOrigin(origins = {"http://localhost:5173"})
+        @CrossOrigin(origins = {"http://localhost:8080"})
         public class UsuarioController {
 
             private final UsuarioService usuarioService;
