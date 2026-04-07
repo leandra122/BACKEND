@@ -3,6 +3,7 @@ package com.timeright.tcc.services;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,36 +22,36 @@ public class FuncionarioService {
     }
 
     // 🔹 BUSCAR POR ID
-    public Funcionario findById(Long id) {
+    public Funcionario findById(@NonNull Long id) {
         return funcionarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Funcionário não encontrado com id " + id));
+                .orElseThrow(() -> new RuntimeException("Funcionario não encontrado com id " + id));
     }
 
     // 🔹 SALVAR
     @Transactional
     public Funcionario salvar(Funcionario funcionario) {
-        funcionario.setCodStatus("ATIVO"); // ✔️ agora correto
+        funcionario.setCodStatus("ATIVO");
         return funcionarioRepository.save(funcionario);
     }
 
     // 🔹 ATUALIZAR
     @Transactional
-    public Funcionario atualizar(Long id, Funcionario funcionario) {
+    public Funcionario atualizar(@NonNull Long id, Funcionario funcionario) {
         Funcionario existente = findById(id);
 
         existente.setNome(funcionario.getNome());
         existente.setEmail(funcionario.getEmail());
         existente.setSenha(funcionario.getSenha());
-        existente.setServico(funcionario.getServico());
         existente.setObservacoes(funcionario.getObservacoes());
         existente.setCodStatus(funcionario.getCodStatus());
+        existente.setServico(funcionario.getServico());
 
         return funcionarioRepository.save(existente);
     }
 
     // 🔹 DELETAR
     @Transactional
-    public void deletar(Long id) {
+    public void deletar(@NonNull Long id) {
         Funcionario funcionario = findById(id);
         funcionarioRepository.delete(funcionario);
     }

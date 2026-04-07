@@ -1,9 +1,13 @@
-import jakarta.persistence.Column;
+package com.timeright.tcc.model.entity;
+
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
 
 @Entity
 @Table(name = "Funcionario")
@@ -28,6 +32,10 @@ public class Funcionario {
     @Column(length = 20, nullable = false)
     private String codStatus;
 
+    @ManyToOne
+    @JoinColumn(name = "servico_id", nullable = false)
+    private Servico servico;
+
     // GETTERS E SETTERS
 
     public Long getId() {
@@ -38,22 +46,12 @@ public class Funcionario {
         return nome;
     }
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
     public void setId(Long id) {
         this.id = id;
     }
 
-
-
-    public String getCodStatus() {
-        return codStatus;
-    }
-
-    public void setCodStatus(String codStatus) {
-        this.codStatus = codStatus;
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
     public String getEmail() {
@@ -79,4 +77,23 @@ public class Funcionario {
     public void setObservacoes(String observacoes) {
         this.observacoes = observacoes;
     }
+
+    public String getCodStatus() {
+        return codStatus;
+    }
+
+    public void setCodStatus(String codStatus) {
+        this.codStatus = codStatus;
+    }
+
+    public Servico getServico() {
+        return servico;
+    }
+
+    public void setServico(Servico servico) {
+        this.servico = servico;
+    }
+
+
+    
 }

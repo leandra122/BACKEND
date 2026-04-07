@@ -13,7 +13,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/funcionario")
-@CrossOrigin(origins = {"http://localhost:8080"})
+@CrossOrigin(origins = {"http://localhost:5173"})
 public class FuncionarioController {
 
     private final FuncionarioService funcionarioService;
@@ -34,7 +34,7 @@ public class FuncionarioController {
         try {
             return ResponseEntity.ok(funcionarioService.findById(id));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(404).body(
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     Map.of(
                             "status", 404,
                             "error", "Not Found",
@@ -51,11 +51,11 @@ public class FuncionarioController {
             Funcionario novo = funcionarioService.salvar(funcionario);
             return ResponseEntity.status(HttpStatus.CREATED).body(novo);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     Map.of(
                             "status", 500,
                             "error", "Internal Server Error",
-                            "message", "Erro ao salvar funcionário"
+                            "message", "Erro ao salvar funcionário: " + e.getMessage()
                     )
             );
         }
@@ -67,7 +67,7 @@ public class FuncionarioController {
         try {
             return ResponseEntity.ok(funcionarioService.atualizar(id, funcionario));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(404).body(
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     Map.of(
                             "status", 404,
                             "error", "Not Found",
@@ -89,7 +89,7 @@ public class FuncionarioController {
                     )
             );
         } catch (RuntimeException e) {
-            return ResponseEntity.status(404).body(
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     Map.of(
                             "status", 404,
                             "error", "Not Found",
@@ -102,6 +102,7 @@ public class FuncionarioController {
     // 🔹 LOGIN
     @PostMapping("/login")
     public ResponseEntity<Object> login(@RequestBody LoginRequest loginRequest) {
+
         Funcionario funcionario = funcionarioService.validarLogin(
                 loginRequest.getEmail(),
                 loginRequest.getSenha()

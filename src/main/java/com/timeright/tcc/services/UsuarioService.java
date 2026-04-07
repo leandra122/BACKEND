@@ -4,6 +4,7 @@ import com.timeright.tcc.model.entity.Usuario;
 import com.timeright.tcc.model.repository.UsuarioRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +22,7 @@ public class UsuarioService {
     }
 
     // 🔹 BUSCAR POR ID
-    public Usuario findById(Long id) {
+    public Usuario findById(@NonNull Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com id " + id));
     }
@@ -35,7 +36,7 @@ public class UsuarioService {
 
     // 🔹 ATUALIZAR
     @Transactional
-    public Usuario atualizar(Long id, Usuario usuario) {
+    public Usuario atualizar(@NonNull Long id, Usuario usuario) {
         Usuario existente = findById(id);
 
         existente.setNome(usuario.getNome());
@@ -49,12 +50,12 @@ public class UsuarioService {
 
     // 🔹 DELETAR
     @Transactional
-    public void deletar(Long id) {
+    public void deletar(@NonNull Long id) {
         Usuario usuario = findById(id);
         usuarioRepository.delete(usuario);
     }
 
-    // 🔹 LOGIN (AGORA CORRETO)
+    // 🔹 LOGIN
     public Usuario validarLogin(String username, String password) {
         Usuario usuario = usuarioRepository.findByUsername(username);
 
