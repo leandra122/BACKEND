@@ -30,14 +30,18 @@ public class Usuario {
 
     @Column(nullable = false)
     private LocalDateTime dataCadastro;
-
+   
     private LocalDateTime dataAtualizacao;
 
     @ManyToOne
     @JoinColumn(name = "nivelAcesso_id", nullable = false)
     private NivelAcesso nivelAcesso;
-
+   
     private String statusUsuario;
+   
+    private String tokenConfirmacao;
+    
+    private Boolean emailConfirmado;
 
     public Integer getId() {
         return id;
@@ -101,6 +105,22 @@ public class Usuario {
 
     public void setStatusUsuario(String statusUsuario) {
         this.statusUsuario = statusUsuario;
+    }
+
+    public String getTokenConfirmacao() {
+        return tokenConfirmacao;
+    }
+
+    public void setTokenConfirmacao(String tokenConfirmacao) {
+        this.tokenConfirmacao = tokenConfirmacao;
+    }
+
+    public Boolean getEmailConfirmado() {
+        return emailConfirmado;
+    }
+
+    public void setEmailConfirmado(Boolean emailConfirmado) {
+        this.emailConfirmado = emailConfirmado;
     }
 
 

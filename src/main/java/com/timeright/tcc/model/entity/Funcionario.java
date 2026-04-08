@@ -1,53 +1,57 @@
 package com.timeright.tcc.model.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Column;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.JoinColumn;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 
 @Entity
-@Table(name = "Funcionario")
+@Table(name = "funcionario")
 public class Funcionario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 100, nullable = false)
     private String nome;
 
-    @Column(length = 100, nullable = false, unique = true)
+    @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(length = 255, nullable = false)
+    @JsonIgnore 
     private String senha;
 
-    @Column(length = 225)
     private String observacoes;
 
-    @Column(length = 20, nullable = false)
     private String codStatus;
 
-    @ManyToOne
-    @JoinColumn(name = "servico_id", nullable = false)
-    private Servico servico;
+    private String servico;
 
-    // GETTERS E SETTERS
+
+    public Funcionario() {
+    }
+
+    public Funcionario(Long id, String nome, String email, String senha,
+                       String observacoes, String codStatus, String servico) {
+        this.id = id;
+        this.nome = nome;
+        this.email = email;
+        this.senha = senha;
+        this.observacoes = observacoes;
+        this.codStatus = codStatus;
+        this.servico = servico;
+    }
+
+
 
     public Long getId() {
         return id;
     }
 
-    public String getNome() {
-        return nome;
-    }
-
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getNome() {
+        return nome;
     }
 
     public void setNome(String nome) {
@@ -86,14 +90,11 @@ public class Funcionario {
         this.codStatus = codStatus;
     }
 
-    public Servico getServico() {
+    public String getServico() {
         return servico;
     }
 
-    public void setServico(Servico servico) {
+    public void setServico(String servico) {
         this.servico = servico;
     }
-
-
-    
 }

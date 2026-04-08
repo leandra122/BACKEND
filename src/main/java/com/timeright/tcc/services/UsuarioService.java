@@ -4,11 +4,13 @@ import com.timeright.tcc.model.entity.Usuario;
 import com.timeright.tcc.model.repository.UsuarioRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.NonNull;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UsuarioService {
@@ -16,56 +18,94 @@ public class UsuarioService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    // 🔹 LISTAR TODOS
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private EmailService emailService;
+
     public List<Usuario> listarTodos() {
         return usuarioRepository.findAll();
     }
 
-    // 🔹 BUSCAR POR ID
-    public Usuario findById(@NonNull Long id) {
+    public Usuario findById(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com id " + id));
     }
 
-    // 🔹 SALVAR
+    // 🔐 CADASTRO COM CONFIRMAÇÃO DE EMAIL
     @Transactional
     public Usuario salvar(Usuario usuario) {
-        usuario.setStatusUsuario("ATIVO");
-        return usuarioRepository.save(usuario);
+        usuario.setStatusUsuario("PENDENTE");
+
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+
+        String token = UUID.randomUUID().toString();
+        usuario.setTokenConfirmacao(token);
+        usuario.setEmailConfirmado(false);
+
+        Usuario salvo = usuarioRepository.save(usuario);
+
+        emailService.enviarEmail(usuario.getUsername(), token);
+
+        return salvo;
     }
 
-    // 🔹 ATUALIZAR
     @Transactional
-    public Usuario atualizar(@NonNull Long id, Usuario usuario) {
+    public Usuario atualizar(Long id, Usuario usuario) {
         Usuario existente = findById(id);
 
         existente.setNome(usuario.getNome());
         existente.setUsername(usuario.getUsername());
-        existente.setPassword(usuario.getPassword());
+
+        if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()) {
+            existente.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        }
+
         existente.setStatusUsuario(usuario.getStatusUsuario());
         existente.setNivelAcesso(usuario.getNivelAcesso());
 
         return usuarioRepository.save(existente);
     }
 
-    // 🔹 DELETAR
     @Transactional
-    public void deletar(@NonNull Long id) {
+    public void deletar(Long id) {
         Usuario usuario = findById(id);
         usuarioRepository.delete(usuario);
     }
 
-    // 🔹 LOGIN
+    // 🔐 LOGIN COM VERIFICAÇÃO DE EMAIL
     public Usuario validarLogin(String username, String password) {
-        Usuario usuario = usuarioRepository.findByUsername(username);
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(username);
 
-        if (usuario != null &&
-            usuario.getPassword().equals(password) &&
-            "ATIVO".equals(usuario.getStatusUsuario())) {
+        if (usuarioOpt.isPresent()) {
+            Usuario usuario = usuarioOpt.get();
 
-            return usuario;
+            if (!usuario.getEmailConfirmado()) {
+                return null;
+            }
+
+            if (passwordEncoder.matches(password, usuario.getPassword()) &&
+                "ATIVO".equals(usuario.getStatusUsuario())) {
+
+                return usuario;
+            }
         }
 
         return null;
+    }
+
+    // 🔐 CONFIRMAR EMAIL
+    public String confirmarEmail(String token) {
+        Usuario usuario = usuarioRepository.findByTokenConfirmacao(token);
+
+        if (usuario != null) {
+            usuario.setEmailConfirmado(true);
+            usuario.setStatusUsuario("ATIVO");
+            usuarioRepository.save(usuario);
+            return "Email confirmado com sucesso!";
+        }
+
+        return "Token inválido!";
     }
 }

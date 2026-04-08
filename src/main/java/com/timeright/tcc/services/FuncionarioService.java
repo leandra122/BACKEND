@@ -1,9 +1,10 @@
 package com.timeright.tcc.services;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.NonNull;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,13 +17,17 @@ public class FuncionarioService {
     @Autowired
     private FuncionarioRepository funcionarioRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     // 🔹 LISTAR TODOS
     public List<Funcionario> listarTodos() {
         return funcionarioRepository.findAll();
     }
 
     // 🔹 BUSCAR POR ID
-    public Funcionario findById(@NonNull Long id) {
+    @SuppressWarnings("null")
+    public Funcionario findById(Long id) {
         return funcionarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Funcionario não encontrado com id " + id));
     }
@@ -31,17 +36,27 @@ public class FuncionarioService {
     @Transactional
     public Funcionario salvar(Funcionario funcionario) {
         funcionario.setCodStatus("ATIVO");
+
+        // 🔐 criptografar senha
+        funcionario.setSenha(passwordEncoder.encode(funcionario.getSenha()));
+
         return funcionarioRepository.save(funcionario);
     }
 
     // 🔹 ATUALIZAR
+    @SuppressWarnings("null")
     @Transactional
-    public Funcionario atualizar(@NonNull Long id, Funcionario funcionario) {
+    public Funcionario atualizar(Long id, Funcionario funcionario) {
         Funcionario existente = findById(id);
 
         existente.setNome(funcionario.getNome());
         existente.setEmail(funcionario.getEmail());
-        existente.setSenha(funcionario.getSenha());
+
+        // 🔐 só criptografa se vier nova senha
+        if (funcionario.getSenha() != null && !funcionario.getSenha().isEmpty()) {
+            existente.setSenha(passwordEncoder.encode(funcionario.getSenha()));
+        }
+
         existente.setObservacoes(funcionario.getObservacoes());
         existente.setCodStatus(funcionario.getCodStatus());
         existente.setServico(funcionario.getServico());
@@ -50,21 +65,25 @@ public class FuncionarioService {
     }
 
     // 🔹 DELETAR
+    @SuppressWarnings("null")
     @Transactional
-    public void deletar(@NonNull Long id) {
+    public void deletar(Long id) {
         Funcionario funcionario = findById(id);
         funcionarioRepository.delete(funcionario);
     }
 
     // 🔹 LOGIN
     public Funcionario validarLogin(String email, String senha) {
-        Funcionario funcionario = funcionarioRepository.findByEmail(email);
+        Optional<Funcionario> funcionarioOpt = funcionarioRepository.findByEmail(email);
 
-        if (funcionario != null &&
-            funcionario.getSenha().equals(senha) &&
-            "ATIVO".equals(funcionario.getCodStatus())) {
+        if (funcionarioOpt.isPresent()) {
+            Funcionario funcionario = funcionarioOpt.get();
 
-            return funcionario;
+            if (passwordEncoder.matches(senha, funcionario.getSenha()) &&
+                "ATIVO".equals(funcionario.getCodStatus())) {
+
+                return funcionario;
+            }
         }
 
         return null;
