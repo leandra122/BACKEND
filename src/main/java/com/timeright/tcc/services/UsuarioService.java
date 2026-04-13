@@ -8,6 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,19 +37,15 @@ public class UsuarioService {
     // 🔐 CADASTRO COM CONFIRMAÇÃO DE EMAIL
     @Transactional
     public Usuario salvar(Usuario usuario) {
-        usuario.setStatusUsuario("PENDENTE");
+        
+        Usuario _usuario = new Usuario();
+        _usuario.setNome(usuario.getNome());
+        _usuario.setUsername(usuario.getUsername());
+        _usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        _usuario.setStatusUsuario("ATIVO");
+        _usuario.setDataCadastro(LocalDateTime.now());
 
-        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
-
-        String token = UUID.randomUUID().toString();
-        usuario.setTokenConfirmacao(token);
-        usuario.setEmailConfirmado(false);
-
-        Usuario salvo = usuarioRepository.save(usuario);
-
-        emailService.enviarEmail(usuario.getUsername(), token);
-
-        return salvo;
+        return usuarioRepository.save(usuario);
     }
 
     @Transactional
@@ -81,10 +78,6 @@ public class UsuarioService {
         if (usuarioOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
 
-            if (!usuario.getEmailConfirmado()) {
-                return null;
-            }
-
             if (passwordEncoder.matches(password, usuario.getPassword()) &&
                 "ATIVO".equals(usuario.getStatusUsuario())) {
 
@@ -97,10 +90,9 @@ public class UsuarioService {
 
     // 🔐 CONFIRMAR EMAIL
     public String confirmarEmail(String token) {
-        Usuario usuario = usuarioRepository.findByTokenConfirmacao(token);
+        Usuario usuario = usuarioRepository.findByUsername(token).orElse(null);
 
         if (usuario != null) {
-            usuario.setEmailConfirmado(true);
             usuario.setStatusUsuario("ATIVO");
             usuarioRepository.save(usuario);
             return "Email confirmado com sucesso!";
