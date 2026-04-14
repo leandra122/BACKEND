@@ -1,6 +1,8 @@
 package com.timeright.tcc.services;
 
+import com.timeright.tcc.model.entity.NivelAcesso;
 import com.timeright.tcc.model.entity.Usuario;
+import com.timeright.tcc.model.repository.NivelAcessoRepository;
 import com.timeright.tcc.model.repository.UsuarioRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,9 @@ public class UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+     @Autowired
+    private NivelAcessoRepository nivelAcessoRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -37,15 +42,22 @@ public class UsuarioService {
     // 🔐 CADASTRO COM CONFIRMAÇÃO DE EMAIL
     @Transactional
     public Usuario salvar(Usuario usuario) {
-        
+
         Usuario _usuario = new Usuario();
+
         _usuario.setNome(usuario.getNome());
         _usuario.setUsername(usuario.getUsername());
         _usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
         _usuario.setStatusUsuario("ATIVO");
         _usuario.setDataCadastro(LocalDateTime.now());
 
-        return usuarioRepository.save(usuario);
+        // ✅ BUSCA REAL NO BANCO
+        NivelAcesso nivel = nivelAcessoRepository.findById(usuario.getNivelAcesso().getId())
+                .orElseThrow(() -> new RuntimeException("Nível de acesso não encontrado"));
+
+        _usuario.setNivelAcesso(nivel);
+
+        return usuarioRepository.save(_usuario);
     }
 
     @Transactional
@@ -79,7 +91,7 @@ public class UsuarioService {
             Usuario usuario = usuarioOpt.get();
 
             if (passwordEncoder.matches(password, usuario.getPassword()) &&
-                "ATIVO".equals(usuario.getStatusUsuario())) {
+                    "ATIVO".equals(usuario.getStatusUsuario())) {
 
                 return usuario;
             }
