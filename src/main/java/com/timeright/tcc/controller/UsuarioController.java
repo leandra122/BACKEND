@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/usuarios")
 public class UsuarioController {
@@ -57,6 +57,7 @@ public class UsuarioController {
     @PostMapping
     public ResponseEntity<Object> save(@RequestBody Usuario usuario) {
         try {
+            
             Usuario novoUsuario = usuarioService.salvar(usuario);
             return ResponseEntity.status(HttpStatus.CREATED).body(novoUsuario);
         } catch (Exception e) {

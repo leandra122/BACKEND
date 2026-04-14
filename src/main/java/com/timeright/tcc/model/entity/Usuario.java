@@ -30,14 +30,14 @@ public class Usuario {
 
     @Column(name = "data_cadastro", nullable = false)
     private LocalDateTime dataCadastro;
-   
+
     @Column(name = "data_atualizacao", nullable = true)
     private LocalDateTime dataAtualizacao;
 
     @ManyToOne
-    @JoinColumn(name = "nivelAcesso_id", nullable = false)
+    @JoinColumn(name = "nivel_acesso_id", nullable = false)
     private NivelAcesso nivelAcesso;
-   
+
     @Column(name = "status", nullable = false)
     private String statusUsuario;
 

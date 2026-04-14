@@ -15,10 +15,10 @@ public class NivelAcesso {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "nomeNivelAcesso", nullable = false, length = 50)
+    @Column(name = "nome", nullable = false, length = 50)
     private String nomeNivelAcesso;
 
-    @Column(name = "statusNivelAcesso", nullable = false, length = 50)
+    @Column(name = "status", nullable = false, length = 50)
     private String statusNivelAcesso;
 
     // Getters e Setters
