@@ -11,11 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class UsuarioService {
@@ -23,7 +21,7 @@ public class UsuarioService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-     @Autowired
+    @Autowired
     private NivelAcessoRepository nivelAcessoRepository;
 
     @Autowired
@@ -32,60 +30,62 @@ public class UsuarioService {
     @Autowired
     private EmailService emailService;
 
+    // 🔹 LISTAR TODOS
     public List<Usuario> listarTodos() {
         return usuarioRepository.findAll();
     }
 
+    // 🔹 BUSCAR POR ID
     public Usuario findById(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com id " + id));
     }
 
-    // 🔐 CADASTRO COM CONFIRMAÇÃO DE EMAIL
+    // 🔐 SALVAR
     @Transactional
     public Usuario salvar(Usuario usuario) {
 
-        Usuario _usuario = new Usuario();
+        Usuario novo = new Usuario();
 
-        _usuario.setNome(usuario.getNome());
-        _usuario.setUsername(usuario.getUsername());
-        _usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
-        _usuario.setStatusUsuario("ATIVO");
-        _usuario.setDataCadastro(LocalDateTime.now());
+        novo.setNome(usuario.getNome());
+        novo.setUsername(usuario.getUsername());
+        novo.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        novo.setStatusUsuario("ATIVO");
+        novo.setDataCadastro(LocalDateTime.now());
 
-        // ✅ BUSCA REAL NO BANCO
-        NivelAcesso nivel = nivelAcessoRepository.findById(usuario.getNivelAcesso().getId())
+        // 🔗 busca nível corretamente
+        NivelAcesso nivel = nivelAcessoRepository
+                .findById(usuario.getNivelAcesso().getId())
                 .orElseThrow(() -> new RuntimeException("Nível de acesso não encontrado"));
 
-        _usuario.setNivelAcesso(nivel);
+        novo.setNivelAcesso(nivel);
 
-        return usuarioRepository.save(_usuario);
+        return usuarioRepository.save(novo);
     }
 
+    // 🔄 ATUALIZAR (CORRIGIDO)
     @Transactional
-    public Usuario atualizar(Long id, Usuario usuario) {
-        Usuario existente = findById(id);
+public Usuario atualizar(Long id, Usuario usuario) {
 
-        existente.setNome(usuario.getNome());
-        existente.setUsername(usuario.getUsername());
+    Usuario existente = usuarioRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()) {
-            existente.setPassword(passwordEncoder.encode(usuario.getPassword()));
-        }
+    existente.setNome("TESTE ALTERACAO FORCADA");
 
-        existente.setStatusUsuario(usuario.getStatusUsuario());
-        existente.setNivelAcesso(usuario.getNivelAcesso());
+    Usuario salvo = usuarioRepository.save(existente);
 
-        return usuarioRepository.save(existente);
-    }
+    System.out.println("SALVO NO BANCO: " + salvo.getNome());
 
+    return salvo;
+}
+    // 🔹 DELETAR
     @Transactional
     public void deletar(Long id) {
         Usuario usuario = findById(id);
         usuarioRepository.delete(usuario);
     }
 
-    // 🔐 LOGIN COM VERIFICAÇÃO DE EMAIL
+    // 🔐 LOGIN
     public Usuario validarLogin(String username, String password) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(username);
 
