@@ -72,6 +72,9 @@ public class UsuarioService {
         if (usuario.getNome() != null && !usuario.getNome().isBlank()) {
             existente.setNome(usuario.getNome());
         }
+        if (usuario.getUsername() != null && !usuario.getUsername().isBlank()) {
+            existente.setUsername(usuario.getUsername());
+        }
         if (usuario.getPassword() != null && !usuario.getPassword().isBlank()) {
             existente.setPassword(passwordEncoder.encode(usuario.getPassword()));
         }
@@ -80,6 +83,16 @@ public class UsuarioService {
 
         return usuarioRepository.save(existente);
     }
+    // 🔄 ATUALIZAR STATUS
+    @Transactional
+    public Usuario atualizarStatus(Long id, String novoStatus) {
+        Usuario existente = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        existente.setStatusUsuario(novoStatus);
+        existente.setDataAtualizacao(LocalDateTime.now());
+        return usuarioRepository.save(existente);
+    }
+
     // 🔹 DELETAR
     @Transactional
     public void deletar(Long id) {
