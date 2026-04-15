@@ -63,21 +63,23 @@ public class UsuarioService {
         return usuarioRepository.save(novo);
     }
 
-    // 🔄 ATUALIZAR (CORRIGIDO)
+    // 🔄 ATUALIZAR
     @Transactional
-public Usuario atualizar(Long id, Usuario usuario) {
+    public Usuario atualizar(Long id, Usuario usuario) {
+        Usuario existente = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-    Usuario existente = usuarioRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        if (usuario.getNome() != null && !usuario.getNome().isBlank()) {
+            existente.setNome(usuario.getNome());
+        }
+        if (usuario.getPassword() != null && !usuario.getPassword().isBlank()) {
+            existente.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        }
 
-    existente.setNome("TESTE ALTERACAO FORCADA");
+        existente.setDataAtualizacao(LocalDateTime.now());
 
-    Usuario salvo = usuarioRepository.save(existente);
-
-    System.out.println("SALVO NO BANCO: " + salvo.getNome());
-
-    return salvo;
-}
+        return usuarioRepository.save(existente);
+    }
     // 🔹 DELETAR
     @Transactional
     public void deletar(Long id) {
