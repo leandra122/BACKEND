@@ -34,7 +34,7 @@ public class Usuario {
     private LocalDateTime dataAtualizacao;
 
     @ManyToOne
-    @JoinColumn(name = "nivelAcesso_id", nullable = false)
+    @JoinColumn(name = "nivel_acesso_id", nullable = false)
     private NivelAcesso nivelAcesso;
    
     private String statusUsuario;
