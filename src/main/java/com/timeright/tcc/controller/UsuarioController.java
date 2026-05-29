@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+@CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/api/usuario")
-@CrossOrigin(origins = {"http://localhost:5173"})
+@RequestMapping("/usuarios")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
@@ -57,6 +57,7 @@ public class UsuarioController {
     @PostMapping
     public ResponseEntity<Object> save(@RequestBody Usuario usuario) {
         try {
+            
             Usuario novoUsuario = usuarioService.salvar(usuario);
             return ResponseEntity.status(HttpStatus.CREATED).body(novoUsuario);
         } catch (Exception e) {
@@ -92,6 +93,24 @@ public class UsuarioController {
                             "message", "Usuário não encontrado com o id: " + id
                     )
             );
+        }
+    }
+
+    // 🔹 ATUALIZAR STATUS
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Object> atualizarStatus(@PathVariable String id, @RequestBody Map<String, String> body) {
+        try {
+            Long idLong = Long.parseLong(id);
+            String novoStatus = body.get("status");
+            if (novoStatus == null || (!novoStatus.equals("ATIVO") && !novoStatus.equals("INATIVO"))) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Status inválido. Use ATIVO ou INATIVO."));
+            }
+            Usuario atualizado = usuarioService.atualizarStatus(idLong, novoStatus);
+            return ResponseEntity.ok(atualizado);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Id inválido: " + id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("message", "Usuário não encontrado com id: " + id));
         }
     }
 

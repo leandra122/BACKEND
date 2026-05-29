@@ -1,16 +1,19 @@
 package com.timeright.tcc.services;
 
+import com.timeright.tcc.model.entity.NivelAcesso;
 import com.timeright.tcc.model.entity.Usuario;
+import com.timeright.tcc.model.repository.NivelAcessoRepository;
 import com.timeright.tcc.model.repository.UsuarioRepository;
+
+import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class UsuarioService {
@@ -19,74 +22,93 @@ public class UsuarioService {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
+    private NivelAcessoRepository nivelAcessoRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
     private EmailService emailService;
 
+    // 🔹 LISTAR TODOS
     public List<Usuario> listarTodos() {
         return usuarioRepository.findAll();
     }
 
+    // 🔹 BUSCAR POR ID
     public Usuario findById(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com id " + id));
     }
 
-    // 🔐 CADASTRO COM CONFIRMAÇÃO DE EMAIL
+    // 🔐 SALVAR
     @Transactional
     public Usuario salvar(Usuario usuario) {
-        usuario.setStatusUsuario("PENDENTE");
 
-        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        Usuario novo = new Usuario();
 
-        String token = UUID.randomUUID().toString();
-        usuario.setTokenConfirmacao(token);
-        usuario.setEmailConfirmado(false);
+        novo.setNome(usuario.getNome());
+        novo.setUsername(usuario.getUsername());
+        novo.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        novo.setStatusUsuario("ATIVO");
+        novo.setDataCadastro(LocalDateTime.now());
 
-        Usuario salvo = usuarioRepository.save(usuario);
+        // 🔗 busca nível corretamente
+        NivelAcesso nivel = nivelAcessoRepository
+                .findById(usuario.getNivelAcesso().getId())
+                .orElseThrow(() -> new RuntimeException("Nível de acesso não encontrado"));
 
-        emailService.enviarEmail(usuario.getUsername(), token);
+        novo.setNivelAcesso(nivel);
 
-        return salvo;
+        return usuarioRepository.save(novo);
     }
 
+    // 🔄 ATUALIZAR
     @Transactional
     public Usuario atualizar(Long id, Usuario usuario) {
-        Usuario existente = findById(id);
+        Usuario existente = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        existente.setNome(usuario.getNome());
-        existente.setUsername(usuario.getUsername());
-
-        if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()) {
+        if (usuario.getNome() != null && !usuario.getNome().isBlank()) {
+            existente.setNome(usuario.getNome());
+        }
+        if (usuario.getUsername() != null && !usuario.getUsername().isBlank()) {
+            existente.setUsername(usuario.getUsername());
+        }
+        if (usuario.getPassword() != null && !usuario.getPassword().isBlank()) {
             existente.setPassword(passwordEncoder.encode(usuario.getPassword()));
         }
 
-        existente.setStatusUsuario(usuario.getStatusUsuario());
-        existente.setNivelAcesso(usuario.getNivelAcesso());
+        existente.setDataAtualizacao(LocalDateTime.now());
 
         return usuarioRepository.save(existente);
     }
+    // 🔄 ATUALIZAR STATUS
+    @Transactional
+    public Usuario atualizarStatus(Long id, String novoStatus) {
+        Usuario existente = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        existente.setStatusUsuario(novoStatus);
+        existente.setDataAtualizacao(LocalDateTime.now());
+        return usuarioRepository.save(existente);
+    }
 
+    // 🔹 DELETAR
     @Transactional
     public void deletar(Long id) {
         Usuario usuario = findById(id);
         usuarioRepository.delete(usuario);
     }
 
-    // 🔐 LOGIN COM VERIFICAÇÃO DE EMAIL
+    // 🔐 LOGIN
     public Usuario validarLogin(String username, String password) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(username);
 
         if (usuarioOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
 
-            if (!usuario.getEmailConfirmado()) {
-                return null;
-            }
-
             if (passwordEncoder.matches(password, usuario.getPassword()) &&
-                "ATIVO".equals(usuario.getStatusUsuario())) {
+                    "ATIVO".equals(usuario.getStatusUsuario())) {
 
                 return usuario;
             }
@@ -97,10 +119,9 @@ public class UsuarioService {
 
     // 🔐 CONFIRMAR EMAIL
     public String confirmarEmail(String token) {
-        Usuario usuario = usuarioRepository.findByTokenConfirmacao(token);
+        Usuario usuario = usuarioRepository.findByUsername(token).orElse(null);
 
         if (usuario != null) {
-            usuario.setEmailConfirmado(true);
             usuario.setStatusUsuario("ATIVO");
             usuarioRepository.save(usuario);
             return "Email confirmado com sucesso!";

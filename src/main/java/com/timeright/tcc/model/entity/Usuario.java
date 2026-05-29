@@ -1,5 +1,6 @@
 package com.timeright.tcc.model.entity;
 
+
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -17,7 +18,7 @@ public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @Column(nullable = false, length = 100)
     private String nome;
@@ -28,26 +29,26 @@ public class Usuario {
     @Column(nullable = false, length = 100)
     private String password;
 
-    @Column(nullable = false)
+    @Column(name = "data_cadastro", nullable = false)
     private LocalDateTime dataCadastro;
-   
+
+    @Column(name = "data_atualizacao")
     private LocalDateTime dataAtualizacao;
 
     @ManyToOne
     @JoinColumn(name = "nivel_acesso_id", nullable = false)
     private NivelAcesso nivelAcesso;
-   
-    private String statusUsuario;
-   
-    private String tokenConfirmacao;
-    
-    private Boolean emailConfirmado;
 
-    public Integer getId() {
+    @Column(name = "status")
+    private String statusUsuario;
+
+    // getters e setters...
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -107,21 +108,5 @@ public class Usuario {
         this.statusUsuario = statusUsuario;
     }
 
-    public String getTokenConfirmacao() {
-        return tokenConfirmacao;
-    }
-
-    public void setTokenConfirmacao(String tokenConfirmacao) {
-        this.tokenConfirmacao = tokenConfirmacao;
-    }
-
-    public Boolean getEmailConfirmado() {
-        return emailConfirmado;
-    }
-
-    public void setEmailConfirmado(Boolean emailConfirmado) {
-        this.emailConfirmado = emailConfirmado;
-    }
-
-
+    
 }
