@@ -1,7 +1,9 @@
 package com.timeright.tcc.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.timeright.tcc.services.UsuarioService;
 
@@ -13,8 +15,4 @@ public class AuthController {
     @Autowired
     private UsuarioService usuarioService;
 
-    @GetMapping("/confirmar")
-    public String confirmarEmail(@RequestParam String token) {
-        return usuarioService.confirmarEmail(token);
     }
-}
