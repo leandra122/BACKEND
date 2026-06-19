@@ -1,5 +1,8 @@
 package com.timeright.tcc.model.repository;
 
-public class SalaoRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
 
+import com.timeright.tcc.model.entity.Salao;
+
+public interface SalaoRepository extends JpaRepository<Salao, Long> {
 }

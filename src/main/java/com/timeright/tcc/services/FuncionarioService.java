@@ -1,91 +1,115 @@
 package com.timeright.tcc.services;
 
 import java.util.List;
-import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.timeright.tcc.model.entity.Funcionario;
+import com.timeright.tcc.model.entity.Salao;
 import com.timeright.tcc.model.repository.FuncionarioRepository;
+import com.timeright.tcc.model.repository.SalaoRepository;
 
 @Service
 public class FuncionarioService {
 
-    @Autowired
-    private FuncionarioRepository funcionarioRepository;
+    private static final String STATUS_ATIVO = "ATIVO";
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final FuncionarioRepository funcionarioRepository;
+    private final SalaoRepository salaoRepository;
 
-    // 🔹 LISTAR TODOS
+    public FuncionarioService(
+            FuncionarioRepository funcionarioRepository,
+            SalaoRepository salaoRepository) {
+
+        this.funcionarioRepository = funcionarioRepository;
+        this.salaoRepository = salaoRepository;
+    }
+
     public List<Funcionario> listarTodos() {
         return funcionarioRepository.findAll();
     }
 
-    // 🔹 BUSCAR POR ID
-    @SuppressWarnings("null")
     public Funcionario findById(Long id) {
         return funcionarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Funcionario não encontrado com id " + id));
+                .orElseThrow(() ->
+                        new RuntimeException("Funcionário não encontrado com id " + id));
     }
 
-    // 🔹 SALVAR
     @Transactional
     public Funcionario salvar(Funcionario funcionario) {
-        funcionario.setCodStatus("ATIVO");
 
-        // 🔐 criptografar senha
-        funcionario.setSenha(passwordEncoder.encode(funcionario.getSenha()));
-
-        return funcionarioRepository.save(funcionario);
-    }
-
-    // 🔹 ATUALIZAR
-    @SuppressWarnings("null")
-    @Transactional
-    public Funcionario atualizar(Long id, Funcionario funcionario) {
-        Funcionario existente = findById(id);
-
-        existente.setNome(funcionario.getNome());
-        existente.setEmail(funcionario.getEmail());
-
-        // 🔐 só criptografa se vier nova senha
-        if (funcionario.getSenha() != null && !funcionario.getSenha().isEmpty()) {
-            existente.setSenha(passwordEncoder.encode(funcionario.getSenha()));
+        if (funcionario.getSalao() == null ||
+                funcionario.getSalao().getId() == null) {
+            throw new RuntimeException("Salão é obrigatório");
         }
 
-        existente.setObservacoes(funcionario.getObservacoes());
-        existente.setCodStatus(funcionario.getCodStatus());
-        existente.setServico(funcionario.getServico());
+        Salao salao = salaoRepository.findById(funcionario.getSalao().getId())
+                .orElseThrow(() ->
+                        new RuntimeException("Salão não encontrado"));
+
+        Funcionario novo = new Funcionario();
+        novo.setNome(funcionario.getNome());
+        novo.setTelefone(funcionario.getTelefone());
+        novo.setEmail(funcionario.getEmail());
+        novo.setEspecialidade(funcionario.getEspecialidade());
+        novo.setStatus(STATUS_ATIVO);
+        novo.setSalao(salao);
+
+        return funcionarioRepository.save(novo);
+    }
+
+    @Transactional
+    public Funcionario atualizar(Long id, Funcionario funcionario) {
+
+        Funcionario existente = findById(id);
+
+        if (funcionario.getNome() != null &&
+                !funcionario.getNome().isBlank()) {
+            existente.setNome(funcionario.getNome());
+        }
+
+        if (funcionario.getTelefone() != null &&
+                !funcionario.getTelefone().isBlank()) {
+            existente.setTelefone(funcionario.getTelefone());
+        }
+
+        if (funcionario.getEmail() != null &&
+                !funcionario.getEmail().isBlank()) {
+            existente.setEmail(funcionario.getEmail());
+        }
+
+        if (funcionario.getEspecialidade() != null &&
+                !funcionario.getEspecialidade().isBlank()) {
+            existente.setEspecialidade(funcionario.getEspecialidade());
+        }
+
+        if (funcionario.getSalao() != null &&
+                funcionario.getSalao().getId() != null) {
+
+            Salao salao = salaoRepository.findById(funcionario.getSalao().getId())
+                    .orElseThrow(() ->
+                            new RuntimeException("Salão não encontrado"));
+
+            existente.setSalao(salao);
+        }
 
         return funcionarioRepository.save(existente);
     }
 
-    // 🔹 DELETAR
-    @SuppressWarnings("null")
     @Transactional
-    public void deletar(Long id) {
-        Funcionario funcionario = findById(id);
-        funcionarioRepository.delete(funcionario);
+    public Funcionario atualizarStatus(Long id, String novoStatus) {
+
+        Funcionario existente = findById(id);
+        existente.setStatus(novoStatus);
+
+        return funcionarioRepository.save(existente);
     }
 
-    // 🔹 LOGIN
-    public Funcionario validarLogin(String email, String senha) {
-        Optional<Funcionario> funcionarioOpt = funcionarioRepository.findByEmail(email);
+    @Transactional
+    public void deletar(Long id) {
 
-        if (funcionarioOpt.isPresent()) {
-            Funcionario funcionario = funcionarioOpt.get();
-
-            if (passwordEncoder.matches(senha, funcionario.getSenha()) &&
-                "ATIVO".equals(funcionario.getCodStatus())) {
-
-                return funcionario;
-            }
-        }
-
-        return null;
+        Funcionario existente = findById(id);
+        funcionarioRepository.delete(existente);
     }
 }

@@ -1,8 +1,9 @@
 package com.timeright.tcc.controller;
 
 import java.util.List;
+import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,61 +11,85 @@ import com.timeright.tcc.model.entity.Funcionario;
 import com.timeright.tcc.services.FuncionarioService;
 
 @RestController
-@RequestMapping("/api/funcionario")
-@CrossOrigin(origins = "*")
+@RequestMapping("/funcionarios")
 public class FuncionarioController {
 
-    @Autowired
-    private FuncionarioService funcionarioService;
+    private final FuncionarioService funcionarioService;
 
-    
+    public FuncionarioController(FuncionarioService funcionarioService) {
+        this.funcionarioService = funcionarioService;
+    }
+
+    // 🔹 LISTAR TODOS
     @GetMapping
-    public ResponseEntity<List<Funcionario>> listarTodos() {
+    public ResponseEntity<List<Funcionario>> findAll() {
         return ResponseEntity.ok(funcionarioService.listarTodos());
     }
 
-    
+    // 🔹 BUSCAR POR ID
     @GetMapping("/{id}")
-    public ResponseEntity<Funcionario> buscarPorId(@PathVariable Long id) {
-        Funcionario funcionario = funcionarioService.findById(id);
-        return ResponseEntity.ok(funcionario);
-    }
-
-  
-    @PostMapping
-    public ResponseEntity<Funcionario> salvar(@RequestBody Funcionario funcionario) {
-        Funcionario novo = funcionarioService.salvar(funcionario);
-        return ResponseEntity.ok(novo);
-    }
-
-   
-    @PutMapping("/{id}")
-    public ResponseEntity<Funcionario> atualizar(
-            @PathVariable Long id,
-            @RequestBody Funcionario funcionario) {
-
-        Funcionario atualizado = funcionarioService.atualizar(id, funcionario);
-        return ResponseEntity.ok(atualizado);
-    }
-
-  
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        funcionarioService.deletar(id);
-        return ResponseEntity.noContent().build();
-    }
-
-
-    @PostMapping("/login")
-    public ResponseEntity<Funcionario> login(@RequestParam String email,
-                                             @RequestParam String senha) {
-
-        Funcionario funcionario = funcionarioService.validarLogin(email, senha);
-
-        if (funcionario != null) {
-            return ResponseEntity.ok(funcionario);
+    public ResponseEntity<Object> findById(@PathVariable String id) {
+        try {
+            Long idLong = Long.parseLong(id);
+            return ResponseEntity.ok(funcionarioService.findById(idLong));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("status", 400, "error", "Bad Request", "message", "O id informado não é válido: " + id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("status", 404, "error", "Not Found", "message", "Funcionário não encontrado com o id: " + id));
         }
+    }
 
-        return ResponseEntity.status(401).build();
+    // 🔹 SALVAR
+    @PostMapping
+    public ResponseEntity<Object> save(@RequestBody Funcionario funcionario) {
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(funcionarioService.salvar(funcionario));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("status", 500, "error", "Internal Server Error", "message", "Erro ao salvar funcionário: " + e.getMessage()));
+        }
+    }
+
+    // 🔹 ATUALIZAR
+    @PutMapping("/{id}")
+    public ResponseEntity<Object> atualizar(@PathVariable String id, @RequestBody Funcionario funcionario) {
+        try {
+            Long idLong = Long.parseLong(id);
+            return ResponseEntity.ok(funcionarioService.atualizar(idLong, funcionario));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("status", 400, "error", "Bad Request", "message", "O id informado não é válido: " + id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("status", 404, "error", "Not Found", "message", "Funcionário não encontrado com o id: " + id));
+        }
+    }
+
+    // 🔹 ATUALIZAR STATUS
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Object> atualizarStatus(@PathVariable String id, @RequestBody Map<String, String> body) {
+        try {
+            Long idLong = Long.parseLong(id);
+            String novoStatus = body.get("status");
+            if (novoStatus == null || (!novoStatus.equals("ATIVO") && !novoStatus.equals("INATIVO"))) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Status inválido. Use ATIVO ou INATIVO."));
+            }
+            return ResponseEntity.ok(funcionarioService.atualizarStatus(idLong, novoStatus));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Id inválido: " + id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("message", "Funcionário não encontrado com id: " + id));
+        }
+    }
+
+    // 🔹 DELETAR
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Object> deletar(@PathVariable String id) {
+        try {
+            Long idLong = Long.parseLong(id);
+            funcionarioService.deletar(idLong);
+            return ResponseEntity.ok(Map.of("status", 200, "message", "Funcionário deletado com sucesso!"));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("status", 400, "error", "Bad Request", "message", "O id informado não é válido: " + id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("status", 404, "error", "Not Found", "message", "Funcionário não encontrado com o id " + id));
+        }
     }
 }

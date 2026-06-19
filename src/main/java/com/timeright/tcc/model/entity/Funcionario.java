@@ -1,100 +1,52 @@
 package com.timeright.tcc.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "funcionario")
+@Table(name = "Funcionario")
 public class Funcionario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 100)
     private String nome;
 
-    @Column(unique = true, nullable = false)
+    @Column(length = 20)
+    private String telefone;
+
+    @Column(length = 100)
     private String email;
 
-    @JsonIgnore 
-    private String senha;
+    @Column(length = 100)
+    private String especialidade;
 
-    private String observacoes;
+    @Column(nullable = false, length = 10)
+    private String status;
 
-    private String codStatus;
+    @ManyToOne
+    @JoinColumn(name = "salao_id", nullable = false)
+    private Salao salao;
 
-    private String servico;
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
 
-    public Funcionario() {
-    }
+    public String getTelefone() { return telefone; }
+    public void setTelefone(String telefone) { this.telefone = telefone; }
 
-    public Funcionario(Long id, String nome, String email, String senha,
-                       String observacoes, String codStatus, String servico) {
-        this.id = id;
-        this.nome = nome;
-        this.email = email;
-        this.senha = senha;
-        this.observacoes = observacoes;
-        this.codStatus = codStatus;
-        this.servico = servico;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
+    public String getEspecialidade() { return especialidade; }
+    public void setEspecialidade(String especialidade) { this.especialidade = especialidade; }
 
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getSenha() {
-        return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
-    }
-
-    public String getObservacoes() {
-        return observacoes;
-    }
-
-    public void setObservacoes(String observacoes) {
-        this.observacoes = observacoes;
-    }
-
-    public String getCodStatus() {
-        return codStatus;
-    }
-
-    public void setCodStatus(String codStatus) {
-        this.codStatus = codStatus;
-    }
-
-    public String getServico() {
-        return servico;
-    }
-
-    public void setServico(String servico) {
-        this.servico = servico;
-    }
+    public Salao getSalao() { return salao; }
+    public void setSalao(Salao salao) { this.salao = salao; }
 }

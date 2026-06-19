@@ -7,7 +7,6 @@ import com.timeright.tcc.model.repository.UsuarioRepository;
 
 import jakarta.transaction.Transactional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,19 +15,20 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@SuppressWarnings("null")
 public class UsuarioService {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final NivelAcessoRepository nivelAcessoRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private NivelAcessoRepository nivelAcessoRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private EmailService emailService;
+    public UsuarioService(UsuarioRepository usuarioRepository,
+                          NivelAcessoRepository nivelAcessoRepository,
+                          PasswordEncoder passwordEncoder) {
+        this.usuarioRepository = usuarioRepository;
+        this.nivelAcessoRepository = nivelAcessoRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     // 🔹 LISTAR TODOS
     public List<Usuario> listarTodos() {
@@ -44,16 +44,13 @@ public class UsuarioService {
     // 🔐 SALVAR
     @Transactional
     public Usuario salvar(Usuario usuario) {
-
         Usuario novo = new Usuario();
-
         novo.setNome(usuario.getNome());
         novo.setUsername(usuario.getUsername());
         novo.setPassword(passwordEncoder.encode(usuario.getPassword()));
         novo.setStatusUsuario("ATIVO");
         novo.setDataCadastro(LocalDateTime.now());
 
-        // 🔗 busca nível corretamente
         NivelAcesso nivel = nivelAcessoRepository
                 .findById(usuario.getNivelAcesso().getId())
                 .orElseThrow(() -> new RuntimeException("Nível de acesso não encontrado"));
@@ -69,20 +66,18 @@ public class UsuarioService {
         Usuario existente = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        if (usuario.getNome() != null && !usuario.getNome().isBlank()) {
+        if (usuario.getNome() != null && !usuario.getNome().isBlank())
             existente.setNome(usuario.getNome());
-        }
-        if (usuario.getUsername() != null && !usuario.getUsername().isBlank()) {
+        if (usuario.getUsername() != null && !usuario.getUsername().isBlank())
             existente.setUsername(usuario.getUsername());
-        }
-        if (usuario.getPassword() != null && !usuario.getPassword().isBlank()) {
+        if (usuario.getPassword() != null && !usuario.getPassword().isBlank())
             existente.setPassword(passwordEncoder.encode(usuario.getPassword()));
-        }
 
         existente.setDataAtualizacao(LocalDateTime.now());
 
         return usuarioRepository.save(existente);
     }
+
     // 🔄 ATUALIZAR STATUS
     @Transactional
     public Usuario atualizarStatus(Long id, String novoStatus) {
@@ -96,8 +91,7 @@ public class UsuarioService {
     // 🔹 DELETAR
     @Transactional
     public void deletar(Long id) {
-        Usuario usuario = findById(id);
-        usuarioRepository.delete(usuario);
+        usuarioRepository.delete(findById(id));
     }
 
     // 🔐 LOGIN
@@ -106,10 +100,8 @@ public class UsuarioService {
 
         if (usuarioOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
-
             if (passwordEncoder.matches(password, usuario.getPassword()) &&
                     "ATIVO".equals(usuario.getStatusUsuario())) {
-
                 return usuario;
             }
         }

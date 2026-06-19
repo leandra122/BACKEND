@@ -3,56 +3,50 @@ package com.timeright.tcc.model.entity;
 import jakarta.persistence.*;
 
 @Entity
-
+@Table(name = "Servico")
 public class Servico {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // AUTO-INCREMENTO SEQUÊNCIAL 1 e 1
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(length = 100, nullable = false)
+
+    @Column(nullable = false, length = 100)
     private String nome;
-    @Column(length = 100, nullable = false)
+
+    @Column(length = 255)
     private String descricao;
-    @Column(length = 300, nullable = true)
-    private double duracao;
-    @Column(length = 3, nullable = false)
-    private String codStatus;
-    @Column(length = 20, nullable = false)
 
-    public Long getId() {
-        return id;
-    }
+    @Column(nullable = false)
+    private Double preco;
 
-    public void setId(Long servicoId) {
-        this.id = servicoId;
-    }
+    @Column(nullable = false)
+    private Integer duracao;
 
-    public String getNome() {
-        return nome;
-    }
+    @Column(nullable = false, length = 10)
+    private String status;
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
+    @ManyToOne
+    @JoinColumn(name = "salao_id", nullable = false)
+    private Salao salao;
 
-    public String getDescricao() {
-        return descricao;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
-    }
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
 
-    public double getDuracao() {
-        return duracao;
-    }
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
 
-    public void setDuracao(double duracao) {
-        this.duracao = duracao;
-    }
+    public Double getPreco() { return preco; }
+    public void setPreco(Double preco) { this.preco = preco; }
 
-    public String getCodStatus() { return codStatus; }
+    public Integer getDuracao() { return duracao; }
+    public void setDuracao(Integer duracao) { this.duracao = duracao; }
 
-    public void setCodStatus(String codStatus) { this.codStatus = codStatus; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
+    public Salao getSalao() { return salao; }
+    public void setSalao(Salao salao) { this.salao = salao; }
 }
