@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.timeright.tcc.model.dto.LoginRequest;
+import com.timeright.tcc.dto.LoginRequest;
 import com.timeright.tcc.model.entity.Usuario;
 import com.timeright.tcc.services.UsuarioService;
 
@@ -61,24 +61,41 @@ public class UsuarioController {
         }
     }
 
-    // 🔹 SALVAR
-    @PostMapping
-    public ResponseEntity<Object> save(@RequestBody Usuario usuario) {
-        try {
-            
-            Usuario novoUsuario = usuarioService.salvar(usuario);
-            return ResponseEntity.status(HttpStatus.CREATED).body(novoUsuario);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    Map.of(
-                            "status", 500,
-                            "error", "Internal Server Error",
-                            "message", "Erro ao salvar usuário: " + e.getMessage()
-                    )
-            );
-        }
-    }
+   // 🔹 SALVAR
+@PostMapping
+public ResponseEntity<Object> save(@RequestBody Usuario usuario) {
 
+    try {
+
+        Usuario novoUsuario = usuarioService.salvar(usuario);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(novoUsuario);
+
+    } catch (RuntimeException e) {
+
+        e.printStackTrace();
+
+        return ResponseEntity.badRequest().body(
+                Map.of(
+                        "status", 400,
+                        "error", "Bad Request",
+                        "message", e.getMessage()
+                )
+        );
+
+    } catch (Exception e) {
+
+        e.printStackTrace();
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                Map.of(
+                        "status", 500,
+                        "error", "Internal Server Error",
+                        "message", e.getMessage()
+                )
+        );
+    }
+}
     // 🔹 ATUALIZAR
     @PutMapping("/{id}")
     public ResponseEntity<Object> atualizar(@PathVariable String id, @RequestBody Usuario usuario) {

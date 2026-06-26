@@ -1,4 +1,4 @@
-package com.timeright.tcc.model.dto;
+package com.timeright.tcc.dto;
 
 public class LoginRequest {
     private String email;

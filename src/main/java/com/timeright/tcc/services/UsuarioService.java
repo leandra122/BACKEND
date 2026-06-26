@@ -41,24 +41,33 @@ public class UsuarioService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com id " + id));
     }
 
-    // 🔐 SALVAR
-    @Transactional
-    public Usuario salvar(Usuario usuario) {
-        Usuario novo = new Usuario();
-        novo.setNome(usuario.getNome());
-        novo.setUsername(usuario.getUsername());
-        novo.setPassword(passwordEncoder.encode(usuario.getPassword()));
-        novo.setStatusUsuario("ATIVO");
-        novo.setDataCadastro(LocalDateTime.now());
+@Transactional
+public Usuario salvar(Usuario usuario) {
 
-        NivelAcesso nivel = nivelAcessoRepository
-                .findById(usuario.getNivelAcesso().getId())
-                .orElseThrow(() -> new RuntimeException("Nível de acesso não encontrado"));
-
-        novo.setNivelAcesso(nivel);
-
-        return usuarioRepository.save(novo);
+    if (usuario.getNivelAcesso() == null || usuario.getNivelAcesso().getId() == null) {
+        throw new RuntimeException("Nível de acesso é obrigatório.");
     }
+
+    NivelAcesso nivel = nivelAcessoRepository
+            .findById(usuario.getNivelAcesso().getId())
+            .orElseThrow(() -> new RuntimeException("Nível de acesso não encontrado."));
+
+    Usuario novo = new Usuario();
+
+    novo.setNome(usuario.getNome());
+    novo.setUsername(usuario.getUsername());
+
+    // senha criptografada
+    novo.setPassword(passwordEncoder.encode(usuario.getPassword()));
+
+    novo.setNivelAcesso(nivel);
+
+    novo.setStatusUsuario("ATIVO");
+
+    novo.setDataCadastro(LocalDateTime.now());
+
+    return usuarioRepository.save(novo);
+}    
 
     // 🔄 ATUALIZAR
     @Transactional
